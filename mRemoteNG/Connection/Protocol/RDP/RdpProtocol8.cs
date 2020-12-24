@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Drawing;
+using System.Threading;
 using System.Windows.Forms;
 using AxMSTSCLib;
 using mRemoteNG.App;
@@ -16,12 +17,37 @@ namespace mRemoteNG.Connection.Protocol.RDP
 		* 
 		* Windows 8+ support RDP v8 out of the box.
 		*/
+
+    public delegate void ReconnectNotification(); //Reconnect request from RDP protocol
+
     public class RdpProtocol8 : RdpProtocol7
     {
         private MsRdpClient8NotSafeForScripting RdpClient8 => (MsRdpClient8NotSafeForScripting)((AxHost)Control).GetOcx();
         private Size _controlBeginningSize;
+        private static System.Timers.Timer ResizeTimer = new System.Timers.Timer(250);
+        private static Boolean ResizeSet = false;
+        //private Messenger messenger = new Messenger();
 
         protected override RdpVersion RdpProtocolVersion => RdpVersion.Rdc8;
+
+
+        private void SetResizeTimer()
+        {
+            ResizeTimer.Elapsed += FireResize; //Function to run on fire
+            ResizeTimer.AutoReset = false; //Only fire once
+            ResizeTimer.Enabled = true; //Enable
+        }
+
+        private void ResizingFire()
+        {
+            if(!ResizeSet)
+            {
+                ResizeSet = true;
+                SetResizeTimer();
+            }
+            ResizeTimer.Stop();
+            ResizeTimer.Start();
+        }
 
         public override bool SmartSize
         {
@@ -52,9 +78,15 @@ namespace mRemoteNG.Connection.Protocol.RDP
         {
             if (DoResize() && _controlBeginningSize.IsEmpty)
             {
-                ReconnectForResize();
+                //Wait a bit before reconnect on resize
+                ResizingFire();
             }
             base.Resize(sender, e);
+        }
+
+        private void FireResize(object sender, EventArgs e)
+        {
+            ReconnectForResize();
         }
 
         public override void ResizeEnd(object sender, EventArgs e)
@@ -71,6 +103,8 @@ namespace mRemoteNG.Connection.Protocol.RDP
         {
             return new AxMsRdpClient8NotSafeForScripting();
         }
+
+
 
         private void ReconnectForResize()
         {
@@ -92,10 +126,24 @@ namespace mRemoteNG.Connection.Protocol.RDP
 
             try
             {
-                var size = Fullscreen
+                //Disconnect();
+                //ReconnectManual();
+                //Connect();
+                //Should we sleep here and wait for a final resize?
+                 var size = Fullscreen
                     ? Screen.FromControl(Control).Bounds.Size
                     : Control.Size;
-                RdpClient8.Reconnect((uint)size.Width, (uint)size.Height);
+
+                //RdpClient8.Reconnect((uint)size.Width, (uint)size.Height);
+
+
+
+                RdpClient8.Disconnect();
+                Thread.Sleep(100); //Don't reconnect too fast
+                SetResolution(true);
+                Connect();
+                return;
+
             }
             catch (Exception ex)
             {
@@ -119,6 +167,11 @@ namespace mRemoteNG.Connection.Protocol.RDP
             {
                 return false;
             }
+        }
+
+        public static implicit operator ReconnectNotification(RdpProtocol8 v)
+        {
+            throw new NotImplementedException();
         }
     }
 }

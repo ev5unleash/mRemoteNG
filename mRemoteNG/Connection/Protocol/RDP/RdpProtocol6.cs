@@ -35,6 +35,7 @@ namespace mRemoteNG.Connection.Protocol.RDP
         private bool _alertOnIdleDisconnect;
         private readonly DisplayProperties _displayProperties;
         private readonly FrmMain _frmMain = FrmMain.Default;
+
         protected virtual RdpVersion RdpProtocolVersion => RdpVersion.Rdc6;
         private AxHost AxHost => (AxHost)Control;
 
@@ -211,6 +212,8 @@ namespace mRemoteNG.Connection.Protocol.RDP
 
         public void ToggleSmartSize()
         {
+
+            return; 
             try
             {
                 SmartSize = !SmartSize;
@@ -514,13 +517,18 @@ namespace mRemoteNG.Connection.Protocol.RDP
             }
         }
 
-        private void SetResolution()
+        public void SetResolution(Boolean isReconnect = false)
         {
             try
             {
-                var scaleFactor = (uint)_displayProperties.ResolutionScalingFactor.Width * 100;
-                SetExtendedProperty("DesktopScaleFactor", scaleFactor);
-                SetExtendedProperty("DeviceScaleFactor", (uint)100);
+                var scaleFactor = (uint)(_displayProperties.ResolutionScalingFactor.Width * 100); //Resolves scaling issues on high DPI displays
+
+                if(!isReconnect)
+                {
+                    SetExtendedProperty("DesktopScaleFactor", scaleFactor);
+                    SetExtendedProperty("DeviceScaleFactor", (uint)100);
+                }
+
 
                 if (Force.HasFlag(ConnectionInfo.Force.Fullscreen))
                 {
@@ -701,6 +709,7 @@ namespace mRemoteNG.Connection.Protocol.RDP
 
         private void RDPEvent_OnDisconnected(int discReason)
         {
+            return;
             const int UI_ERR_NORMAL_DISCONNECT = 0xB08;
             if (discReason != UI_ERR_NORMAL_DISCONNECT)
             {
@@ -791,7 +800,7 @@ namespace mRemoteNG.Connection.Protocol.RDP
 
         #region Reconnect Stuff
 
-        public void tmrReconnect_Elapsed(object sender, ElapsedEventArgs e)
+        public void ReconnectManual()
         {
             try
             {
@@ -811,6 +820,11 @@ namespace mRemoteNG.Connection.Protocol.RDP
                     string.Format(Language.AutomaticReconnectError, connectionInfo.Hostname),
                     ex, MessageClass.WarningMsg, false);
             }
+        }
+
+        public void tmrReconnect_Elapsed(object sender, ElapsedEventArgs e)
+        {
+            ReconnectManual();
         }
 
         #endregion

@@ -217,6 +217,8 @@
     <Compile Include="Credential\CredentialServiceFacade.cs" />
     <Compile Include="Connection\Protocol\PowerShell\Connection.Protocol.PowerShell.cs" />
     <None Include="Documentation\faq.rst" />
+    <Compile Include="Messages\Messenger.cs" />
+    <Compile Include="Messages\ReconnectEvent.cs" />
     <Compile Include="Properties\Resources.Designer.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>

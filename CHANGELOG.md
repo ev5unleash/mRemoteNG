@@ -11,6 +11,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 - #420: SSH tunneling implemented
 - #319: Override quick connect username when using user@domain
 - #283: Support for native PowerShell remoting as new protocol
+- Added a timer to the RDP Resize activation. It will now wait 250ms before actually reconnecting to the RDP session. 
 ### Changed
 - #1777: Cleaned up VisualStudio project structure
 - #1767: Turned about window into a simple popup form
@@ -30,6 +31,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 - #1465: REGRESSION: Smart Cards redirection to Remote Desktop not working
 - #1337: Unhandled exception after closing mRemoteNG
 - #359: Making a VNC connection to an unreachable host causes the application to not respond for 20-30 seconds
+- Fixed the display resolution on RDP Connection to adhere to high DPI displays. No more fuzzy screens.
+- Fixed the issue where the builtin RDP Reconnect function was too slow. Instead, we now disconnect, then reconnect.
 
 ## [1.77.1] - 2019-09-02
 ### Added
